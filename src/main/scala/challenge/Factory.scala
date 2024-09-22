@@ -27,29 +27,12 @@ object Factory {
   }
 
   def doAction(initialState: State): State = {
-    val (workers, conveyor) = initialState.workers.map(_._1)
-      .lazyZip(initialState.workers.map(_._2))
-      .lazyZip(initialState.conveyor)
-      .map { case (workerOne, workerTwo, conveyorItem) => Slot(workerOne, workerTwo, conveyorItem) }
-      .map {
-        case Slot(Worker(hasItemP, _, false), workerTwo, None) if hasItemP.contains(Item.P) =>
-          Slot(Worker(hasItemP.filterNot(i => i == Item.P), 0, true), workerTwo, Some(Item.P))
-
-        case Slot(workerOne, Worker(hasItemP, _, false), None) if hasItemP.contains(Item.P) =>
-          Slot(workerOne, Worker(hasItemP.filterNot(i => i == Item.P), 0, true), Some(Item.P))
-
-        case Slot(acceptsConveyorItem, workerTwo, Some(conveyorItem)) if acceptsConveyorItem.acceptsItem(conveyorItem) =>
-          Slot(acceptsConveyorItem.copy(items = acceptsConveyorItem.items + conveyorItem, done = true), workerTwo, None)
-
-        case Slot(workerOne, acceptsConveyorItem, Some(conveyorItem)) if acceptsConveyorItem.acceptsItem(conveyorItem) =>
-          Slot(workerOne, acceptsConveyorItem.copy(items = acceptsConveyorItem.items + conveyorItem, done = true), None)
-
-        case x => x
-      }
-      .map(s => s.copy(workerOne = s.workerOne.assembleProduct, workerTwo = s.workerTwo.assembleProduct))
-      .map(s => s.copy(workerOne = s.workerOne.copy(done = false), workerTwo = s.workerTwo.copy(done = false)))
-      .map(s => ((s.workerOne, s.workerTwo), s.conveyorItem))
+    val (workers, conveyor) = initialState.workers.transpose
+      .zip(initialState.conveyor)
+      .map { case (workers: Array[Worker], conveyorItem) => Slot(workers, conveyorItem) }
+      .map(s => s.act())
+      .map(s => (s.workers, s.conveyorItem))
       .unzip
-    initialState.copy(conveyor = conveyor, workers = workers)
+    initialState.copy(conveyor = conveyor, workers = workers.transpose.map(wa => wa.map(w => w.copy(done = false))))
   }
 }
