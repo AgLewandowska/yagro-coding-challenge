@@ -12,7 +12,6 @@
 - Count finished products in hands or on conveyor at the end
 - Experiment with different priorities (for different types of held items)
 - Don't use so many case classes?
-- Extract constants (no of slots, no of steps, etc) to start args
 
 ## Expected alterations
 
