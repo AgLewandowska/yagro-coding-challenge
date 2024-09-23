@@ -19,10 +19,10 @@ object Factory {
   def moveConveyor(currentState: State): State = {
     currentState.copy(
       finishedProducts = currentState.conveyor.last match {
-        case Some(Item.P) => currentState.finishedProducts + 1
+        case Product() => currentState.finishedProducts + 1
         case _ => currentState.finishedProducts
       },
-      conveyor = generateComponent +: currentState.conveyor.dropRight(1)
+      conveyor = generateComponent.map(i => Component(i)).getOrElse(AvailableSlot()) +: currentState.conveyor.dropRight(1)
     )
   }
 
@@ -31,8 +31,10 @@ object Factory {
       .zip(initialState.conveyor)
       .map { case (workers: Array[Worker], conveyorItem) => Slot(workers, conveyorItem) }
       .map(s => s.act())
-      .map(s => (s.workers, s.conveyorItem))
+      .map(s => (s.workers, s.conveyorSlot))
       .unzip
-    initialState.copy(conveyor = conveyor, workers = workers.transpose.map(wa => wa.map(w => w.copy(done = false))))
+    initialState.copy(
+      conveyor = conveyor.toSeq.map(c => if (c == UnavailableSlot()) AvailableSlot() else c),
+      workers = workers.transpose)
   }
 }

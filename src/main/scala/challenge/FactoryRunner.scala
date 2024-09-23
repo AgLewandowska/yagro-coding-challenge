@@ -4,7 +4,7 @@ class FactoryRunner(printSteps: Boolean, noOfSlots: Int) {
   
   def run(noOfSteps: Int): Unit = {
     val initialState = State(finishedProducts = 0,
-      conveyor = (1 to noOfSlots).map(_ => None),
+      conveyor = (1 to noOfSlots).map(_ => AvailableSlot()),
       workers = (1 to 2).map(_ => (1 to noOfSlots).map(_ => Worker.empty).toArray).toArray
     )
 
