@@ -61,6 +61,8 @@ class Factory(printSteps: Boolean, noOfSlots: Int, var state: State) {
 }
 
 object Factory {
+  val assemblyTime = 3
+
   private def generateComponent: Option[Item] = {
     Random().nextInt(Item.components.length + 1) match {
       case 0 => None

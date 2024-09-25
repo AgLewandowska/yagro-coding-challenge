@@ -7,10 +7,6 @@
 - Prefer moving components to workers not holding products
 - A worker can pick up a component when holding a finished product (but cannot then replace it with a product)
 
-## TODO
-
-- Write tests for State and Worker classes and some to check average productivity
-
 ## Expected alterations
 
 - Change number of worker slots

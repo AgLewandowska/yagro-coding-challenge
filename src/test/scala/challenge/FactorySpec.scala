@@ -5,14 +5,14 @@ import org.scalatest.matchers.should
 
 class FactorySpec extends AnyFlatSpec with should.Matchers {
   "Running" should
-    "result in an average of 15 to 35 finished products" in {
+    "result in an average of 20 to 30 finished products" in {
     val results = for (n <- 1 to 10) yield {
       val factory = new Factory(false, 3, State.emptyWithNSlots(3))
       factory.run(100)
       factory.state.totalFinishedProducts
     }
 
-    (results.sum.toDouble / 10.0) should be (25.0 +- 10.0)
+    (results.sum.toDouble / 10.0) should be (25.0 +- 5.0)
   }
   
   "Moving the conveyor" should
@@ -150,7 +150,7 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
     factory.state.workers(0)(0).items should not contain (Item.A)
     factory.state.workers(1)(0).items should contain (Item.A)
   }
-  it should "construct a P item if worker has A and B items in stage 3" in {
+  it should "construct a P item if worker has A and B items in stage equal to assembly time" in {
     val factory = new Factory(false, 3, 
       State(
         finishedProductsInBucket = 10, 

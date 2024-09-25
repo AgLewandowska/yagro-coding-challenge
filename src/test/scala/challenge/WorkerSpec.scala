@@ -46,13 +46,13 @@ class WorkerSpec extends AnyFlatSpec with should.Matchers {
     worker.acceptsItem(Item.A) should be(false)
   }
 
-  "assembling a product" should "increment assembly stage if the worker is holding items A and B and the stage is less than 3" in {
+  "assembling a product" should "increment assembly stage if the worker is holding items A and B and the stage is less than assembly time" in {
     val worker = Worker(Set(Item.A, Item.B), 0)
 
     worker.assembleProduct().assemblyStage shouldBe 1
   }
-  it should "assemble product if the worker is holding items A and B and the stage is 3" in {
-    val worker = Worker(Set(Item.A, Item.B), 3)
+  it should "assemble product if the worker is holding items A and B and the stage is equal to assembly time" in {
+    val worker = Worker(Set(Item.A, Item.B), Factory.assemblyTime)
 
     worker.assembleProduct().assemblyStage shouldBe 0
     worker.assembleProduct().items shouldBe Set(Item.P)

@@ -5,16 +5,16 @@ class Worker(val items: Set[Item],
 
   override def toString: String =
     (items.mkString + (if (assemblyStage > 0) assemblyStage else " ")).padTo(3, ' ')
-    
+
   def hasFinishedProduct: Boolean = items.contains(Item.P)
-  
+
   def acceptsItem(item: Item): Boolean =
     Item.components.contains(item) && items.size < 2 && !items.contains(item)
 
   def assembleProduct(): Worker =
-    if (items == Item.components.toSet && assemblyStage < 3)
+    if (items == Item.components.toSet && assemblyStage < Factory.assemblyTime)
       Worker(items, assemblyStage + 1)
-    else if (items == Item.components.toSet && assemblyStage == 3)
+    else if (items == Item.components.toSet && assemblyStage == Factory.assemblyTime)
       Worker(Set(Item.P), 0)
     else this
 
