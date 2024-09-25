@@ -3,8 +3,19 @@ package challenge
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class ConveyorSpec extends AnyFlatSpec with should.Matchers {
-  "The Conveyor" should
+class FactorySpec extends AnyFlatSpec with should.Matchers {
+  "Running" should
+    "result in an average of 15 to 35 finished products" in {
+    val results = for (n <- 1 to 10) yield {
+      val factory = new Factory(false, 3, State.emptyWithNSlots(3))
+      factory.run(100)
+      factory.state.totalFinishedProducts
+    }
+
+    (results.sum.toDouble / 10.0) should be (25.0 +- 10.0)
+  }
+  
+  "Moving the conveyor" should
     "move an item" in {
       val factory = new Factory(false, 3,
         State(
@@ -18,15 +29,11 @@ class ConveyorSpec extends AnyFlatSpec with should.Matchers {
       factory.state.conveyor(2) shouldBe Component(Item.A)
     }
   it should "append new component item or None" in {
-    val factory = new Factory(false, 3,
-      State(
-        finishedProductsInBucket = 0, 
-        conveyor = Seq(AvailableSlot(), AvailableSlot(), AvailableSlot()), 
-        workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray
-    ))
-    factory.moveConveyor()
-
-    factory.state.conveyor(0) should be(AvailableSlot()).or(be(Component(Item.A))).or(be(Component(Item.B)))
+    val factory = new Factory(false, 3, State.emptyWithNSlots(3))
+    for (n <- 1 to 10) {
+      factory.moveConveyor()
+      factory.state.conveyor.head should be(AvailableSlot()).or(be(Component(Item.A))).or(be(Component(Item.B)))
+    }
   }
   it should "drop last item" in {
     val factory = new Factory(false, 3,
@@ -41,12 +48,7 @@ class ConveyorSpec extends AnyFlatSpec with should.Matchers {
     factory.state.conveyor(2) shouldEqual AvailableSlot()
   }
   it should "retain length of 3" in {
-    val factory = new Factory(false, 3,
-      State(
-        finishedProductsInBucket = 0, 
-        conveyor = Seq(AvailableSlot(), AvailableSlot(), AvailableSlot()), 
-        workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
-    )
+    val factory = new Factory(false, 3, State.emptyWithNSlots(3))
     factory.moveConveyor()
 
     factory.state.conveyor should have length 3
@@ -77,11 +79,13 @@ class ConveyorSpec extends AnyFlatSpec with should.Matchers {
     factory.state.conveyor(2) should be(AvailableSlot())
   }
 
-  "Acting" should
+  "Doing an action" should
     "move an A item to worker one if worker one is empty" in {
-      val factory = new Factory(false, 3, State(finishedProductsInBucket = 10,
-        conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()),
-        workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
+      val factory = new Factory(false, 3,
+        State(
+          finishedProductsInBucket = 10, 
+          conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()), 
+          workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
       )
 
       factory.doAction()

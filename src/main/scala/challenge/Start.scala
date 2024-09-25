@@ -12,12 +12,7 @@ object Start {
       .map(steps => Integer.parseInt(steps.replace("slots=", "")))
       .getOrElse(3)
     
-    val factory = new Factory(printSteps, noOfSlots,
-      State(
-        finishedProductsInBucket = 0,
-        conveyor = (1 to noOfSlots).map(_ => AvailableSlot()),
-        workers = (1 to 2).map(_ => (1 to noOfSlots).map(_ => Worker.empty).toArray).toArray)
-    )
+    val factory = new Factory(printSteps, noOfSlots, State.emptyWithNSlots(noOfSlots))
     factory.run(noOfSteps)
 
     println(s"Run complete!")

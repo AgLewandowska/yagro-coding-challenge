@@ -23,3 +23,13 @@ case class State(finishedProductsInBucket: Int,
   def finishedProductsInHands: Int = workers.flatten.flatMap(w => w.items).count(i => i == Item.P)
   def totalFinishedProducts: Int = finishedProductsInBucket + finishedProductsOnConveyor + finishedProductsInHands
 }
+
+object State {
+  def emptyWithNSlots(slots: Int): State = {
+    State(
+      finishedProductsInBucket = 0,
+      conveyor = (1 to slots).map(_ => AvailableSlot()),
+      workers = (1 to 2).map(_ => (1 to slots).map(_ => Worker.empty).toArray).toArray
+    )
+  }
+}
