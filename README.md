@@ -2,10 +2,9 @@
 
 ## Assumptions
 
-- Top line of workers has priority
 - Conveyor is empty at the start
 - Workers do not hold any items at the start
-- Prefer moving items to workers not holding products
+- Prefer moving components to workers not holding products
 - A worker can pick up a component when holding a finished product (but cannot then replace it with a product)
 
 ## TODO
