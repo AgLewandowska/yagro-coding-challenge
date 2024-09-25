@@ -1,19 +1,25 @@
 package challenge
 
-case class State(finishedProducts: Int,
+import scala.annotation.tailrec
+
+case class State(finishedProductsInBucket: Int,
                  conveyor: Seq[ConveyorSlot],
                  workers: Array[Array[Worker]]) {
   
   override def toString: String = {
-    s"Finished products: $finishedProducts\n" +
+    s"Finished products in bucket: $finishedProductsInBucket\n" +
       workers(0).mkString("", " ", "\n") +
       conveyor.map { 
         case AvailableSlot() | UnavailableSlot() => "   "
-        case Product() => Product().item.toString.padTo(3, ' ')
+        case Product() => Product().item.get.toString.padTo(3, ' ')
         case Component(item) => item.toString.padTo(3, ' ')
       }.mkString("", " ", "\n") +
       workers(1).mkString(" ")
   }
+
+  def finishedProductsOnConveyor: Int = conveyor.count(cs => cs == Product())
+  def finishedProductsInHands: Int = workers.flatten.flatMap(w => w.items).count(i => i == Item.P)
+  def totalFinishedProducts: Int = finishedProductsInBucket + finishedProductsOnConveyor + finishedProductsInHands
 }
 
 case class Worker(items: Set[Item], assemblyStage: Int) {
@@ -36,28 +42,37 @@ object Worker {
 }
 
 case class Slot(workers: Array[Worker], conveyorSlot: ConveyorSlot) {
-  def act(): Slot = {
-    
-    val (updatedConveyorSlot, updatedWorkers) = workers.foldLeft((conveyorSlot, Array[Worker]())){
-      case ((AvailableSlot(), result), worker: Worker) if worker.items.contains(Item.P) =>
-        (Product(), result :+ worker.copy(items = worker.items.filterNot(_ == Item.P)))
 
-      case ((conveyor, result), Worker(items, 3)) =>
-        (conveyor, result :+ Worker(items = Set(Item.P), assemblyStage = 0))
-        
-      case ((conveyor, result), Worker(items, stage)) if items == Item.components.toSet && stage < 3 =>
-        (conveyor, result :+ Worker(items, stage + 1))
-        
-      case ((Component(item), result), worker: Worker) if worker.acceptsItem(item) =>
-        (UnavailableSlot(), result :+ worker.copy(items = worker.items + item))
-        
-      case ((conveyor, result), in: Worker) => (conveyor, result :+ in)
+  @tailrec
+  private def actRecursive(conveyorSlot: ConveyorSlot,
+                           updatedWorkers: Array[Worker],
+                           availableWorkers: Array[Worker]): (ConveyorSlot, Array[Worker], Array[Worker]) = {
+    if (availableWorkers.isEmpty) {
+      (conveyorSlot, updatedWorkers, availableWorkers)
+    } else {
+      val (cs, uw, aw) = (conveyorSlot, updatedWorkers, availableWorkers.head, availableWorkers.tail) match {
+        case (AvailableSlot(), result, worker, remainder) if worker.hasFinishedProduct =>
+          (Product(), result :+ worker.copy(items = worker.items.filter(i => i != Item.P)), remainder)
+
+        case (conveyor, result, Worker(items, 3), remainder) =>
+          (conveyor, result :+ Worker(items = Set(Item.P), assemblyStage = 0), remainder)
+
+        case (conveyor, result, Worker(items, stage), remainder) if items == Item.components.toSet =>
+          (conveyor, result :+ Worker(items, stage + 1), remainder)
+
+        case (Component(item), result, worker, remainder)
+          if worker.acceptsItem(item)
+            && (!worker.hasFinishedProduct || !remainder.exists(w => w.acceptsItem(item) && !w.hasFinishedProduct)) =>
+          (UnavailableSlot(), result :+ worker.copy(items = worker.items + item), remainder)
+
+        case (conveyor, result, worker, remainder) => (conveyor, result :+ worker, remainder)
+      }
+      actRecursive(cs, uw, aw)
     }
-    
-    Slot(updatedWorkers,
-      updatedConveyorSlot match {
-        case UnavailableSlot() => AvailableSlot() 
-        case x => x
-    })
+  }
+
+  def act(): Slot = {
+    val (updatedConveyorSlot, updatedWorkers, availableWorkers) = actRecursive(conveyorSlot, Array[Worker](), workers)
+    Slot(updatedWorkers, updatedConveyorSlot)
   }
 }
