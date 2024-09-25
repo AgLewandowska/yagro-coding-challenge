@@ -9,7 +9,7 @@
 
 ## TODO
 
-- Don't use so many case classes?
+- Write tests for State and Worker classes and some to check average productivity
 
 ## Expected alterations
 
