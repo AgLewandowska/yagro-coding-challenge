@@ -12,9 +12,9 @@ class Worker(val items: Set[Item],
     Item.components.contains(item) && items.size < 2 && !items.contains(item)
 
   def assembleProduct(): Worker =
-    if (items == Item.components.toSet && assemblyStage < Factory.assemblyTime)
+    if (items == Item.components.toSet && assemblyStage < Factory.finalAssemblyStage)
       Worker(items, assemblyStage + 1)
-    else if (items == Item.components.toSet && assemblyStage == Factory.assemblyTime)
+    else if (items == Item.components.toSet && assemblyStage == Factory.finalAssemblyStage)
       Worker(Set(Item.P), 0)
     else this
 
