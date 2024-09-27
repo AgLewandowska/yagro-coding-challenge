@@ -4,6 +4,7 @@ package challenge
  * @param workers rows of workers parallel to conveyor
  */
 case class State(finishedProductsInBucket: Int,
+                 componentsInBucket: Map[Item, Int],
                  conveyor: Seq[ConveyorSlot],
                  workers: Array[Array[Worker]]) {
   
@@ -28,6 +29,7 @@ object State {
   def emptyWithNSlots(slots: Int): State = {
     State(
       finishedProductsInBucket = 0,
+      componentsInBucket = Map(),
       conveyor = (1 to slots).map(_ => AvailableSlot()),
       workers = (1 to 2).map(_ => (1 to slots).map(_ => Worker.empty).toArray).toArray
     )
