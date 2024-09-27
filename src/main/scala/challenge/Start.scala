@@ -16,6 +16,7 @@ object Start {
     factory.run(noOfSteps)
 
     println(s"Run complete!")
+    println(s"Components in bucket: ${if (factory.state.componentsInBucket.isEmpty) "None" else factory.state.componentsInBucket.mkString(", ")}")
     println(s"Finished products in bucket: ${factory.state.finishedProductsInBucket}")
     println(s"Finished products on conveyor: ${factory.state.finishedProductsOnConveyor}")
     println(s"Finished products in hands: ${factory.state.finishedProductsInHands}")

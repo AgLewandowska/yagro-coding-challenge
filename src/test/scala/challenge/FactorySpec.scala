@@ -20,6 +20,7 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
       val factory = new Factory(false, 3,
         State(
           finishedProductsInBucket = 0,
+          componentsInBucket = Map(),
           conveyor = Seq(AvailableSlot(), Component(Item.A), AvailableSlot()),
           workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray
         ))
@@ -38,7 +39,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "drop last item" in {
     val factory = new Factory(false, 3,
       State(
-        finishedProductsInBucket = 0, 
+        finishedProductsInBucket = 0,
+        componentsInBucket = Map(),
         conveyor = Seq(AvailableSlot(), AvailableSlot(), Component(Item.A)), 
         workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
     )
@@ -58,7 +60,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "count finished item before dropping it" in {
     val factory = new Factory(false, 3,
       State(
-        finishedProductsInBucket = 10, 
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(AvailableSlot(), AvailableSlot(), Product()), 
         workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
     )
@@ -66,10 +69,36 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
 
     factory.state.finishedProductsInBucket shouldEqual 11
   }
+  it should "count component before dropping it" in {
+    val factory = new Factory(false, 3,
+      State(
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(Item.A -> 5, Item.B -> 2),
+        conveyor = Seq(AvailableSlot(), AvailableSlot(), Component(Item.A)),
+        workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
+    )
+    factory.moveConveyor()
+
+    factory.state.componentsInBucket(Item.A) shouldEqual 6
+    factory.state.componentsInBucket(Item.B) shouldEqual 2
+  }
+  it should "count component if component bucket is empty" in {
+    val factory = new Factory(false, 3,
+      State(
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
+        conveyor = Seq(AvailableSlot(), AvailableSlot(), Component(Item.B)),
+        workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
+    )
+    factory.moveConveyor()
+
+    factory.state.componentsInBucket(Item.B) shouldEqual 1
+  }
   it should "reset slot availability" in {
     val factory = new Factory(false, 3,
       State(
         finishedProductsInBucket = 0,
+        componentsInBucket = Map(),
         conveyor = Seq(UnavailableSlot(), UnavailableSlot(), UnavailableSlot()),
         workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
     )
@@ -83,7 +112,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
     "move an A item to worker one if worker one is empty" in {
       val factory = new Factory(false, 3,
         State(
-          finishedProductsInBucket = 10, 
+          finishedProductsInBucket = 10,
+          componentsInBucket = Map(),
           conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()), 
           workers = (1 to 2).map(_ => (1 to 3).map(_ => Worker.empty).toArray).toArray)
       )
@@ -96,7 +126,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "move an A item to worker one if worker one has a B item" in {
     val factory = new Factory(false, 3,
       State(
-        finishedProductsInBucket = 10, 
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(Component(Item.B), AvailableSlot(), AvailableSlot()), 
         workers = Array(
           Array(Worker(Set(Item.A), 0), Worker.empty, Worker.empty), 
@@ -110,7 +141,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "not move an A item if workers have an A item" in {
     val factory = new Factory(false, 3,
       State(
-        finishedProductsInBucket = 10, 
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()), 
         workers = Array(
           Array(Worker(Set(Item.A), 0), Worker.empty, Worker.empty), 
@@ -125,7 +157,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "not move an A item to worker one if worker one has A and B items" in {
     val factory = new Factory(false, 3,
       State(
-        finishedProductsInBucket = 10, 
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()), 
         workers = Array(
           Array(Worker(Set(Item.A, Item.B), 0), Worker.empty, Worker.empty), 
@@ -139,6 +172,7 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
     val factory = new Factory(false, 3,
       State(
         finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()),
         workers = Array(
           Array(Worker(Set(Item.P), 0), Worker.empty, Worker.empty),
@@ -153,7 +187,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   it should "construct a P item if worker has A and B items in stage equal to final assembly stage" in {
     val factory = new Factory(false, 3, 
       State(
-        finishedProductsInBucket = 10, 
+        finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(AvailableSlot(), AvailableSlot(), AvailableSlot()), 
         workers = Array(
           Array(Worker(Set(Item.A, Item.B), Factory.finalAssemblyStage), Worker.empty, Worker.empty),
@@ -165,7 +200,8 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
   }
   it should "increment assembly stage if worker has items A and B" in {
     val factory = new Factory(false, 3, 
-      State(finishedProductsInBucket = 10, 
+      State(finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(AvailableSlot(), AvailableSlot(), AvailableSlot()), 
         workers = Array(
           Array(Worker(Set(Item.A, Item.B), 1), Worker.empty, Worker.empty), 
@@ -180,6 +216,7 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
     val factory = new Factory(false, 3,
       State(
         finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(AvailableSlot(), AvailableSlot(), AvailableSlot()),
         workers = Array(
           (1 to 3).map(_ => Worker.empty).toArray,
@@ -195,6 +232,7 @@ class FactorySpec extends AnyFlatSpec with should.Matchers {
     val factory = new Factory(false, 3,
       State(
         finishedProductsInBucket = 10,
+        componentsInBucket = Map(),
         conveyor = Seq(Component(Item.A), AvailableSlot(), AvailableSlot()),
         workers = Array(
           Array(Worker(Set(Item.B), 0), Worker.empty, Worker.empty),

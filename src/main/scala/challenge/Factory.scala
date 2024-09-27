@@ -36,6 +36,10 @@ class Factory(printSteps: Boolean, noOfSlots: Int, var state: State) {
         case Product() => state.finishedProductsInBucket + 1
         case _ => state.finishedProductsInBucket
       },
+      componentsInBucket = state.conveyor.last match {
+        case Component(item) => state.componentsInBucket + (item -> (state.componentsInBucket.getOrElse(item, 0) + 1))
+        case _ => state.componentsInBucket
+      },
       conveyor = Factory.generateComponent
         .map(i => Component(i))
         .getOrElse(AvailableSlot())
